@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+	<Text Option="MultiLanguageSupport" Enabled="True" /> <!-- Enable support for multiple languages. If set to True, the toast notification will look for the users language culture within the config file -->
+	<en-US> <!-- Default fallback language. This language will be used if MultiLanguageSupport is set to False or if no matching language is found -->
+        <Rotation>
+            <Text>Hi there</Text>
+            <Text>Currently we are loading all policies</Text>
+            <Text>This will take between 5-15 minutes</Text>
+            <Text>At the end your PC will reboot</Text>
+            <Text>Now might be a good time to get a coffee :)</Text>
+            <Text>We'll have you up and running in no time</Text>
+        </Rotation>
+		<Text Name="TextBottom">This will take a while...don't turn off your pc</Text>
+        <Text Name="RebootCheck">Automatically Reboot</Text>
+    </en-US>
+	<de-DE>
+        <Rotation>
+            <Text>Yo was geht</Text>
+            <Text>Derzeit laden wir alle Richtlinien</Text>
+            <Text>Dies dauert zwischen 5 und 15 Minuten</Text>
+            <Text>Am Ende wird Ihr PC neu gestartet</Text>
+            <Text>Jetzt ist ein guter Zeitpunkt einen Kaffee zu trinken :)</Text>
+            <Text>Ihr System wird im Handumdrehen einsatzbereit sein</Text>
+        </Rotation>
+		<Text Name="TextBottom">Dies wird eine Weile dauern... schalten Sie Ihren PC nicht aus</Text>
+        <Text Name="RebootCheck">Automatischer Neustart</Text>
+    </de-DE>
+</Configuration>
