@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="b1c7bb01-0c68-4d44-bbe3-42b2d3648f08" Name="Windows Autopilot First Login" Language="1033" Version="0.1" Manufacturer="SH" UpgradeCode="28fca6e6-e4a8-461d-876a-3a1c8470bb04">
+        <Package Id="428232ad-2220-421c-a6eb-cca31fa1d5ed" InstallerVersion="301" Compressed="no" InstallScope="perMachine" />
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+        <MediaTemplate />
+        <!-- Add installer icon -->
+        <Icon Id="autopilot.ico" SourceFile="autopilot.ico" />
+        <Icon Id="icon.ico" SourceFile="autopilot.ico" />
+        <Property Id="ARPPRODUCTICON" Value="icon.ico" />
+        <Property Id="LicenseAccepted" Value="1" />
+        <Property Id="REBOOT" Value="ReallySuppress" />
+        <Property Id="RebootRequired" Value="No" />
+        <Property Id="RebootYesNo" Value="No" />
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+        <Feature Id="ProductFeature" Title="Product" Level="1">
+            <ComponentGroupRef Id="ProductComponents" />
+            <ComponentGroupRef Id="AppDeployToolkitComponents" />
+            <ComponentGroupRef Id="bin" />
+            <ComponentGroupRef Id="xaml" />
+        </Feature>
+        <UI>
+            <UIRef Id="WixUI_InstallDir" />
+        </UI>
+        
+        <Binary Id="Binary_ScheduledTask_Create" SourceFile="ScheduledTask_Create.vbs" />
+        <CustomAction Id="ScheduledTask_Create_VAR" Property="ScheduledTask_Create" Value="[INSTALLDIR]||Autopilot First Login - Enrollment|ScheduledTask_FirstLogin.xml" />
+		<CustomAction Id="ScheduledTask_Create" Execute="deferred" Return="check" BinaryKey="Binary_ScheduledTask_Create" VBScriptCall="" Impersonate='no' />
+        
+		<Binary Id="Binary_ScheduledTask_Remove" SourceFile="ScheduledTask_Remove.vbs" />
+        <CustomAction Id="ScheduledTask_Remove_VAR" Property="ScheduledTask_Remove" Value="[INSTALLDIR]|Autopilot First Login - Enrollment" />
+		<CustomAction Id="ScheduledTask_Remove" Execute="deferred" Return="check" BinaryKey="Binary_ScheduledTask_Remove" VBScriptCall="" Impersonate='no'/>
+		
+		<Binary Id="Binary_Modify_File_utf16" SourceFile="modify_file_utf16.vbs" />
+		<CustomAction Id="ScheduledTask_Modify_VAR" Property="ScheduledTask_Modify" Value="[INSTALLDIR]|ScheduledTask_FirstLogin.xml" />
+		<CustomAction Id="ScheduledTask_Modify" Execute="deferred" Return="check" BinaryKey="Binary_Modify_File_utf16" VBScriptCall="" Impersonate='no'/>
+		
+		<InstallExecuteSequence>
+            <Custom Action="ScheduledTask_Create_VAR" Before="InstallInitialize" />
+            <Custom Action="ScheduledTask_Remove_VAR" Before="InstallInitialize" />
+			<Custom Action="ScheduledTask_Modify_VAR" Before="InstallInitialize" />
+			<Custom Action="ScheduledTask_Modify" Before="PatchFiles">NOT REMOVE</Custom>
+            <Custom Action="ScheduledTask_Create" Before="StartServices">NOT REMOVE</Custom>
+            <Custom Action="ScheduledTask_Remove" Before="DeleteServices"><![CDATA[REMOVE="ALL"]]></Custom>
+        </InstallExecuteSequence>
+    </Product>
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramMenuFolder" />
+            <Directory Id="ProgramFilesFolder">
+                <Directory Id="Manufactor" Name="SH">
+                    <Directory Id="INSTALLDIR" Name="FirstLogin">
+                        <Directory Id="AppDeployToolkit" Name="AppDeployToolkit"></Directory>
+						<Directory Id="assembly" Name="assembly"></Directory>
+                        <Directory Id="bin" Name="bin"></Directory>
+                        <Directory Id="Images" Name="Images"></Directory>
+                        <Directory Id="SCRIPTS" Name="Scripts"></Directory>
+                        <Directory Id="Xaml" Name="Xaml"></Directory>
+                    </Directory>
+                </Directory>
+            </Directory>
+        </Directory>
+    </Fragment>
+    <Fragment>
+        <ComponentGroup Id="ProductComponents" Directory="INSTALLDIR">
+            <Component Id="DeployApplication" Guid="f228b478-8567-40b3-8641-164c29d7e93d">
+                <File Id="DeployApplication.exe" Name="Deploy-Application.exe" Source="..\Code\Deploy-Application.exe" KeyPath="yes" />
+                <File Id="DeployApplication.exe.config" Name="Deploy-Application.exe.config" Source="..\Code\Deploy-Application.exe.config" />
+				<File Id="ServiceUI.exe" Name="ServiceUI.exe" Source="..\Code\ServiceUI.exe" />
+            </Component>
+            <Component Id="Login" Guid="f37736cd-6a37-4ea7-9ae2-13664ee543cc">
+                <File Id="login.ps1" Name="login.ps1" Source="..\Code\login.ps1" KeyPath="yes" />
+				<File Id="ScheduledTaskFirstLogin.xml" Name="ScheduledTask_FirstLogin.xml" Source="..\Code\ScheduledTask_FirstLogin.xml" />
+            </Component>
+            <Component Id="Screen" Guid="95a44e8e-8de8-454d-956e-3f257c55a617">
+                <File Id="CreateFullScreenBackground.ps1" Name="Create-FullScreenBackground.ps1" Source="..\Code\Create-FullScreenBackground.ps1" KeyPath="yes" />
+				<File Id="CreateRunspaces.ps1" Name="Create-Runspaces.ps1" Source="..\Code\Create-Runspaces.ps1" />
+                <File Id="ShowOSUpgradeBackground.ps1" Name="Show-OSUpgradeBackground.ps1" Source="..\Code\Show-OSUpgradeBackground.ps1" />
+            </Component>
+            <Component Id="StartMenu" Guid="6bec34e4-a4ba-4faa-affa-bc1ee515679d">
+                <File Id="CheckWindowsLauncher.ps1" Name="Check-WindowsLauncher.ps1" Source="..\Code\Check-WindowsLauncher.ps1" KeyPath="yes" />
+                <File Id="config.language.xml" Name="config.language.xml" Source="..\Code\config.language.xml" />
+            </Component>
+        </ComponentGroup>
+        <ComponentGroup Id="AppDeployToolkitComponents" Directory="AppDeployToolkit">
+            <Component Id="AppDeployToolkitConfig" Guid="59e1e738-d914-4923-bfee-0ae606e8684e">
+                <File Id="AppDeployToolkitBanner.png" Name="AppDeployToolkitBanner.png" Source="..\Code\AppDeployToolkit\AppDeployToolkitBanner.png" />
+				<File Id="AppDeployToolkitConfig.xml" Name="AppDeployToolkitConfig.xml" Source="..\Code\AppDeployToolkit\AppDeployToolkitConfig.xml" KeyPath="yes" />
+				<File Id="AppDeployToolkitExtensions.ps1" Name="AppDeployToolkitExtensions.ps1" Source="..\Code\AppDeployToolkit\AppDeployToolkitExtensions.ps1" />
+				<File Id="AppDeployToolkitHelp.ps1" Name="AppDeployToolkitHelp.ps1" Source="..\Code\AppDeployToolkit\AppDeployToolkitHelp.ps1" />
+				<File Id="AppDeployToolkitLogo.ico" Name="AppDeployToolkitLogo.ico" Source="..\Code\AppDeployToolkit\AppDeployToolkitLogo.ico" />
+				<File Id="AppDeployToolkitLogo.png" Name="AppDeployToolkitLogo.png" Source="..\Code\AppDeployToolkit\AppDeployToolkitLogo.png" />
+				<File Id="AppDeployToolkitMain.cs" Name="AppDeployToolkitMain.cs" Source="..\Code\AppDeployToolkit\AppDeployToolkitMain.cs" />
+				<File Id="AppDeployToolkitMain.ps1" Name="AppDeployToolkitMain.ps1" Source="..\Code\AppDeployToolkit\AppDeployToolkitMain.ps1" />
+            </Component>
+        </ComponentGroup>
+        <ComponentGroup Id="bin" Directory="bin">
+            <Component Id="MahApps" Guid="8ed417e1-97eb-41c1-a576-e03c297b661f">
+                <File Id="ControlzEx.dll" Name="ControlzEx.dll" Source="..\Code\bin\ControlzEx.dll" />
+				<File Id="LICENSE" Name="LICENSE" Source="..\Code\bin\LICENSE" />
+				<File Id="LICENSEplus" Name="LICENSE+" Source="..\Code\bin\LICENSE+" />
+				<File Id="MahApps.Metro.dll" Name="MahApps.Metro.dll" Source="..\Code\bin\MahApps.Metro.dll" KeyPath="yes" />
+				<File Id="System.Windows.Interactivity.dll" Name="System.Windows.Interactivity.dll" Source="..\Code\bin\System.Windows.Interactivity.dll" />
+            </Component>
+        </ComponentGroup>
+        <ComponentGroup Id="xaml" Directory="Xaml">
+            <Component Id="xamlFile" Guid="3d81243f-ef26-4ea8-baaf-484ef75a60cc">
+				<File Id="SplashScreen.xaml" Name="SplashScreen.xaml" Source="..\Code\xaml\SplashScreen.xaml" KeyPath="yes" />
+            </Component>
+        </ComponentGroup>
+    </Fragment>
+</Wix>
