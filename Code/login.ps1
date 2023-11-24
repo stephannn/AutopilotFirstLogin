@@ -5,9 +5,14 @@
 	https://smbtothecloud.com/automate-a-reboot-or-custom-script-when-the-autopilot-esp-is-complete/
 	https://call4cloud.nl/2022/10/intune-sync-debug-tool-the-last-royal-treasure/
 	https://github.com/SMSAgentSoftware/CustomW10UpgradeSplashScreen
-	https://psappdeploytoolkit.com/
+	https://www.petervanderwoude.nl/post/windows-10-mdm-policy-refresh/
 
 	I hope I haven't forgetten anyone
+
+	Changelog:
+
+	0.2 add check if ESP is still running
+	0.1 initial design
 
 #>
 
@@ -20,7 +25,7 @@ param(
 )
 
 $userDomains = @('AzureAD','FMDE')
-$companyName = "SH"
+$companyName = "SPIE"
 
 if ($PSScriptRoot.Length -eq 0) {
 	$scriptDirectory = (get-location).path
@@ -75,11 +80,15 @@ $userObject = Get-CurrentLoggedOnUser -userDomains $userDomains
 
 #====================================================#
 
-if($null -ne $userObject){
+if(($null -ne $userObject) -and ($userObject -notmatch "defaultUser")){
 	#New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS -ErrorAction SilentlyContinue
 	$RegPath = "Registry::HKU\$($userObject.SID)\SOFTWARE\$companyName\Enrollment"
 
-	if([bool](Get-ItemProperty -Path $RegPath -Name 'FirstLoginSync' -ErrorAction SilentlyContinue) -eq $false -or ($dryRun -eq $true)){
+	# Not working anymore
+	$MdmFinished = [bool]($(Get-WmiObject -Namespace "root\cimv2\mdm\dmmap" -Class "MDM_EnrollmentStatusTracking_Setup01").HasProvisioningCompleted -eq "True")
+	$MdmFinished = $true
+	
+	if( ([bool](Get-ItemProperty -Path $RegPath -Name 'FirstLoginSync' -ErrorAction SilentlyContinue) -eq $false -and $MdmFinished -eq $true) -or ($dryRun -eq $true) ){
 
 		if(!([string]::IsNullOrEmpty($userObject.UILanguage))){
 			$defaultUserCulture = $userObject.UILanguage | Select-Object -First 1
